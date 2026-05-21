@@ -146,48 +146,54 @@ export default function AdminDashboard({
   // Compute merged datasets: combine Firebase real-time collection + preloaded mock profiles for rich visuals
   const finalUsers = dbUsers.length > 0
     ? dbUsers
-    : mockProfiles.map(p => ({
-      id: p.id.toString(),
-      uid: p.id.toString(),
-      fullName: p.name,
-      email: `${p.name.toLowerCase().replace(' ', '')}@example.com`,
-      profileImage: p.avatar_url,
-      createdAt: new Date(Date.now() - 86400000 * p.id).toISOString(),
+    : (mockProfiles ?? []).map((p: any) => ({
+      id: p?.id?.toString?.() || '',
+      uid: p?.id?.toString?.() || '',
+      fullName: p?.name || 'Unknown User',
+      email: p?.email || `${(p?.name || 'user').toLowerCase().replace(/\s/g, '')}@example.com`,
+      profileImage: p?.avatar_url || '',
+      createdAt: new Date(Date.now() - 86400000 * (p?.id || 1)).toISOString(),
       lastLogin: new Date().toISOString(),
       role: 'user',
-      gender: p.gender,
-      age: p.age,
-      relationship_goal: p.relationship_goal,
-      location_name: p.location_name,
-      is_premium: p.is_premium,
-      verification_badge: p.verification_badge,
-      status: p.status
+      gender: p?.gender || 'unknown',
+      age: p?.age || 18,
+      relationship_goal: p?.relationship_goal || 'Long Term',
+      location_name: p?.location_name || 'Unknown',
+      is_premium: p?.is_premium || false,
+      verification_badge: p?.verification_badge || false,
+      status: p?.status || 'active'
     }));
 
   const finalMessages = dbMessages.length > 0
     ? dbMessages
-    : mockMessages.map((m, idx) => ({
-      id: m.id.toString(),
-      messageId: m.id.toString(),
-      senderId: m.sender_id.toString(),
-      senderName: m.sender_id === 11 ? 'Emily Davis' : 'Alex Johnson',
-      messageText: m.content,
+    : (mockMessages ?? []).map((m: any, idx: number) => ({
+      id: m?.id?.toString?.() || '',
+      messageId: m?.id?.toString?.() || '',
+      senderId: m?.sender_id?.toString?.() || '',
+      senderName: m?.sender_id === 11 ? 'Emily Davis' : 'Alex Johnson',
+      messageText: m?.content || '',
       createdAt: new Date(Date.now() - 3600000 * idx).toISOString(),
-      readStatus: m.is_read ? 'read' : 'unread',
+      readStatus: m?.is_read ? 'read' : 'unread',
       chatId: 'mock_chat_thread'
     }));
-
   // Resolve Member display names dynamically from UIDs
   const getMemberName = (uid: string) => {
-    const found = finalUsers.find(u => u.id === uid || u.uid === uid);
-    return found ? (found.fullName || found.name) : `User (${uid.slice(0, 6)})`;
+    const found = finalUsers.find(
+      (u: any) => u?.id === uid || u?.uid === uid
+    );
+
+    return found
+      ? (found?.fullName || found?.name || 'Unknown User')
+      : `User (${uid?.slice?.(0, 6) || 'unknown'})`;
   };
 
-  // Get count of messages sent by a specific user
   const getMessagesCountForUser = (userId: string) => {
-    return finalMessages.filter(m => m.senderId === userId || m.sender_id === userId).length;
+    return finalMessages.filter(
+      (m: any) =>
+        m?.senderId === userId ||
+        m?.sender_id === userId
+    ).length;
   };
-
   // Recharts: Analytics Data
   const registrationData = [
     { name: 'Dec', count: 320 },
@@ -213,7 +219,7 @@ export default function AdminDashboard({
         .then(() => alert(`Account status of ${fsUser.fullName} has been changed to: ${nextStatus.toUpperCase()}`))
         .catch(err => console.error("Error updating user status:", err));
     } else {
-      setMockProfiles((prev) =>
+      setMockProfiles ? ((prev) =>
         prev.map((p) => {
           if (p.id.toString() === userId) {
             const nextStatus = p.status === 'banned' ? 'active' : 'banned';
@@ -235,7 +241,7 @@ export default function AdminDashboard({
         .then(() => alert(`Verification badge ${nextVerify ? 'GRANTED to' : 'REVOKED from'} ${fsUser.fullName}.`))
         .catch(err => console.error("Error updating verification badge:", err));
     } else {
-      setMockProfiles((prev) =>
+      setMockProfiles ? ((prev) =>
         prev.map((p) => {
           if (p.id.toString() === userId) {
             const nextVerify = !p.verification_badge;
@@ -261,7 +267,7 @@ export default function AdminDashboard({
         console.error("Error deleting user document:", err);
       }
     } else {
-      setMockProfiles(prev => prev.filter(p => p.id.toString() !== userId));
+      setMockProfiles ? (prev => prev.filter(p => p.id.toString() !== userId));
       alert("[Mock Update] Successfully deleted user profile from in-memory index.");
     }
   };
@@ -566,8 +572,8 @@ export default function AdminDashboard({
                           setAdminActivePartnerName(partnerName);
                         }}
                         className={`w-full text-left p-3 rounded-xl border transition-all flex flex-col gap-1 ${adminActiveChatId === chat.id
-                            ? 'bg-indigo-950/40 border-indigo-500/50 text-white'
-                            : 'bg-slate-900/50 border-slate-800 text-slate-300 hover:border-slate-700'
+                          ? 'bg-indigo-950/40 border-indigo-500/50 text-white'
+                          : 'bg-slate-900/50 border-slate-800 text-slate-300 hover:border-slate-700'
                           }`}
                       >
                         <div className="flex items-center justify-between">
