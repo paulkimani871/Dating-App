@@ -86,8 +86,19 @@ const INITIAL_PROFILES = [
   }
 ];
 
+interface Message {
+  id: number;
+  sender_id: number | string;
+  receiver_id: number | string;
+  message_type: 'text' | 'image';
+  content: string;
+  media_url: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 // Initial preloaded chat streams
-const INITIAL_MESSAGES = [
+const INITIAL_MESSAGES: Message[] = [
   {
     id: 1001,
     sender_id: 11,
@@ -128,7 +139,7 @@ export default function App() {
   const [onlineStatus, setOnlineStatus] = useState(true);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [mockProfiles, setMockProfiles] = useState(INITIAL_PROFILES);
-  const [mockMessages, setMockMessages] = useState(INITIAL_MESSAGES);
+  const [mockMessages, setMockMessages] = useState<Message[]>(INITIAL_MESSAGES);
   
   // Local profile overrides (e.g. premium status or avatar updates)
   const [localProfileOverride, setLocalProfileOverride] = useState<any>(null);
@@ -357,7 +368,6 @@ export default function App() {
               notifications={notifications}
               markNotificationsAsRead={markNotificationsAsRead}
               setActiveTab={setActiveTab}
-              onLogout={handleLogout}
             />
 
             {/* Dashboards based on roles */}

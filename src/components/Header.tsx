@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Sparkles, LogOut, CheckCircle, Shield, Menu } from 'lucide-react';
+import { Bell, Sparkles, Shield } from 'lucide-react';
 
 interface NotificationItem {
   id: number;
@@ -19,7 +19,6 @@ interface HeaderProps {
   notifications: NotificationItem[];
   markNotificationsAsRead: () => void;
   setActiveTab: (tab: string) => void;
-  onLogout: () => void;
 }
 
 export default function Header({
@@ -30,8 +29,7 @@ export default function Header({
   setOnlineStatus,
   notifications,
   markNotificationsAsRead,
-  setActiveTab,
-  onLogout
+  setActiveTab
 }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const unreadCount = notifications.filter((n) => !n.is_read).length;

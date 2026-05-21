@@ -11,7 +11,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab, role, userName, isPremium, onLogout }: SidebarProps) {
-  const userMenuItems = [
+interface MenuItem {
+    id: string;
+    label: string;
+    icon: React.ComponentType<any>;
+    accent?: boolean;
+  }
+
+  const userMenuItems: MenuItem[] = [
     { id: 'discover', label: 'Discover Matches', icon: Heart },
     { id: 'messages', label: 'Messages', icon: MessageCircle },
     { id: 'filters', label: 'Search & Filters', icon: Sliders },
@@ -19,7 +26,7 @@ export default function Sidebar({ activeTab, setActiveTab, role, userName, isPre
     { id: 'premium', label: 'Premium VIP', icon: Sparkles, accent: true },
   ];
 
-  const adminMenuItems = [
+  const adminMenuItems: MenuItem[] = [
     { id: 'overview', label: 'Analytics Panel', icon: Sliders },
     { id: 'users', label: 'User Directory', icon: User },
     { id: 'moderation', label: 'Photo Approval', icon: Sparkles },

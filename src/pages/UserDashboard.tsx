@@ -389,10 +389,11 @@ export default function UserDashboard({
             <div className="lg:col-span-2">
               {swipeIdx < getFilteredCandidates().length ? (
                 <SwipeCard
-                  profile={getFilteredCandidates()[swipeIdx]}
+                  card={getFilteredCandidates()[swipeIdx]}
                   onSwipe={handleSwipe}
                   onFavorite={handleFavorite}
                   onBlock={handleBlock}
+                  isFavorited={false}
                 />
               ) : (
                 <div className="h-[460px] glass-card border border-slate-800 rounded-3xl flex flex-col items-center justify-center text-center p-8">

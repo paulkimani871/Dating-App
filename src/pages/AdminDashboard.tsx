@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { 
   collection, query, onSnapshot, orderBy, doc, 
-  deleteDoc, updateDoc, writeBatch, collectionGroup, addDoc, getDoc 
+  deleteDoc, updateDoc, writeBatch, collectionGroup, addDoc, getDoc, setDoc 
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
