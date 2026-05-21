@@ -9,25 +9,50 @@ import {
   signInWithPopup
 } from 'firebase/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { uploadProfileImage } from '../utils/imageUtils';
 
 interface UserData {
   uid: string;
   fullName: string;
   email: string;
+  age?: number;
+  gender?: string;
+  city?: string;
+  country?: string;
+  bio?: string;
+  interests?: string[];
   profileImage: string | null;
-  provider: 'email' | 'google';
+  onlineStatus?: boolean;
+  relationship_goal?: string;
+  relationshipType?: string;
   createdAt: string;
   lastLogin: string;
   role: 'user' | 'admin';
+  provider: 'email' | 'google';
+  profileCompleted?: number;
+  images?: string[];
 }
 
 interface AuthContextType {
   user: FirebaseUser | null;
   userData: UserData | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    age: number,
+    gender: string,
+    city: string,
+    country: string,
+    bio: string,
+    relationshipGoal: string,
+    interests: string[],
+    profileImageBlob: Blob,
+    onUploadProgress?: (progress: number) => void
+  ) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -50,21 +75,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   // Sign up with Email and Password
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    age: number,
+    gender: string,
+    city: string,
+    country: string,
+    bio: string,
+    relationshipGoal: string,
+    interests: string[],
+    profileImageBlob: Blob,
+    onUploadProgress?: (progress: number) => void
+  ) => {
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
       
+      // Upload profile image to Firebase Storage (slot index 0 is primary)
+      let profileUrl = null;
+      try {
+        profileUrl = await uploadProfileImage(firebaseUser.uid, profileImageBlob, 0, onUploadProgress);
+      } catch (uploadError) {
+        console.error("Failed to upload profile image during signup:", uploadError);
+      }
+
       const newUserData: UserData = {
         uid: firebaseUser.uid,
         fullName: fullName,
         email: email,
-        profileImage: null,
-        provider: 'email',
+        age: age,
+        gender: gender,
+        city: city,
+        country: country,
+        bio: bio,
+        relationship_goal: relationshipGoal,
+        relationshipType: relationshipGoal,
+        interests: interests,
+        profileImage: profileUrl,
+        onlineStatus: true,
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
         role: email.toLowerCase() === 'admin@dreammatch.com' ? 'admin' : 'user',
+        provider: 'email',
+        profileCompleted: 100,
+        images: profileUrl ? [profileUrl] : [],
       };
 
       // Save user to Firestore using UID as document ID
@@ -103,6 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               createdAt: new Date().toISOString(),
               lastLogin: new Date().toISOString(),
               role: 'admin',
+              images: ['https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop'],
             };
             await setDoc(doc(db, 'users', firebaseUser.uid), adminUserData);
           } catch (signUpError) {
@@ -139,6 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: lastLoginTime,
           lastLogin: lastLoginTime,
           role: email.toLowerCase() === 'admin@dreammatch.com' ? 'admin' : 'user',
+          images: [],
         };
         await setDoc(userDocRef, fallbackData);
       }
@@ -174,6 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: lastLoginTime,
           lastLogin: lastLoginTime,
           role: isNewAdmin ? 'admin' : 'user',
+          images: firebaseUser.photoURL ? [firebaseUser.photoURL] : [],
         };
         await setDoc(userDocRef, newUserData);
       } else {
@@ -212,46 +272,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Listen to Auth State changes (Absolute single source of truth)
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    let unsubscribeSnapshot: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      // Clean up previous snapshot listener if any
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+
       setLoading(true);
       setUser(currentUser);
+
       if (currentUser) {
         try {
           const userDocRef = doc(db, 'users', currentUser.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            let data = userDocSnap.data() as UserData;
-            // Force admin role for the admin@dreammatch.com email
-            if (currentUser.email?.toLowerCase() === 'admin@dreammatch.com' && data.role !== 'admin') {
-              data.role = 'admin';
-              await updateDoc(userDocRef, { role: 'admin' });
+          
+          // Setup real-time listener
+          unsubscribeSnapshot = onSnapshot(userDocRef, async (docSnap) => {
+            if (docSnap.exists()) {
+              let data = docSnap.data() as UserData;
+              // Force admin role for the admin@dreammatch.com email
+              if (currentUser.email?.toLowerCase() === 'admin@dreammatch.com' && data.role !== 'admin') {
+                data.role = 'admin';
+                await updateDoc(userDocRef, { role: 'admin' });
+              }
+              setUserData(data);
+              setLoading(false);
+            } else {
+              const lastLoginTime = new Date().toISOString();
+              const fallbackData: UserData = {
+                uid: currentUser.uid,
+                fullName: currentUser.email?.toLowerCase() === 'admin@dreammatch.com' ? 'Platform Administrator' : (currentUser.displayName || 'Dating Member'),
+                email: currentUser.email || '',
+                profileImage: currentUser.photoURL || null,
+                provider: currentUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
+                createdAt: lastLoginTime,
+                lastLogin: lastLoginTime,
+                role: currentUser.email?.toLowerCase() === 'admin@dreammatch.com' ? 'admin' : 'user',
+                images: currentUser.photoURL ? [currentUser.photoURL] : [],
+              };
+              await setDoc(userDocRef, fallbackData);
             }
-            setUserData(data);
-          } else {
-            const lastLoginTime = new Date().toISOString();
-            const fallbackData: UserData = {
-              uid: currentUser.uid,
-              fullName: currentUser.email?.toLowerCase() === 'admin@dreammatch.com' ? 'Platform Administrator' : (currentUser.displayName || 'Dating Member'),
-              email: currentUser.email || '',
-              profileImage: currentUser.photoURL || null,
-              provider: currentUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
-              createdAt: lastLoginTime,
-              lastLogin: lastLoginTime,
-              role: currentUser.email?.toLowerCase() === 'admin@dreammatch.com' ? 'admin' : 'user',
-            };
-            await setDoc(userDocRef, fallbackData);
-            setUserData(fallbackData);
-          }
+          }, (err) => {
+            console.error('Firestore snapshot listener error:', err);
+            setLoading(false);
+          });
         } catch (err) {
-          console.error('Error fetching user data from Firestore:', err);
+          console.error('Error establishing user snapshot:', err);
+          setLoading(false);
         }
       } else {
         setUserData(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+    };
   }, []);
 
   const value = {

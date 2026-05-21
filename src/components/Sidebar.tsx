@@ -7,11 +7,12 @@ interface SidebarProps {
   role: 'admin' | 'user';
   userName: string;
   isPremium: boolean;
+  avatarUrl?: string;
   onLogout: () => void;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, role, userName, isPremium, onLogout }: SidebarProps) {
-interface MenuItem {
+export default function Sidebar({ activeTab, setActiveTab, role, userName, isPremium, avatarUrl, onLogout }: SidebarProps) {
+  interface MenuItem {
     id: string;
     label: string;
     icon: React.ComponentType<any>;
@@ -57,9 +58,17 @@ interface MenuItem {
         {/* User Card */}
         <div className="p-4 mb-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-sm">
-              {userName.charAt(0)}
-            </div>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={userName}
+                className="w-10 h-10 rounded-full object-cover border border-slate-800/80 shadow-sm"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-sm">
+                {userName.charAt(0)}
+              </div>
+            )}
             <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></span>
           </div>
           <div className="overflow-hidden">
