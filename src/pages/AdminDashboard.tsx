@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Sliders, Shield, User, Sparkles, Star, Ban, CheckCircle, 
-  XCircle, FileSpreadsheet, ShieldAlert, Key, Globe, Mail, 
-  Landmark, Trash2, Calendar, MessageSquare, Search, Filter 
+import {
+  Sliders, Shield, User, Sparkles, Star, Ban, CheckCircle,
+  XCircle, FileSpreadsheet, ShieldAlert, Key, Globe, Mail,
+  Landmark, Trash2, Calendar, MessageSquare, Search, Filter
 } from 'lucide-react';
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, PieChart, Pie, Cell 
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
-import { 
-  collection, query, onSnapshot, orderBy, doc, 
-  deleteDoc, updateDoc, writeBatch, collectionGroup, addDoc, getDoc, setDoc 
+import {
+  collection, query, onSnapshot, orderBy, doc,
+  deleteDoc, updateDoc, writeBatch, collectionGroup, addDoc, getDoc, setDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -18,10 +18,10 @@ interface AdminDashboardProps {
   user: any;
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  mockProfiles: any[];
-  setMockProfiles: React.Dispatch<React.SetStateAction<any[]>>;
-  mockMessages: any[];
-  onlineStatus: boolean;
+  mockProfiles?: any[];
+  setMockProfiles?: React.Dispatch<React.SetStateAction<any[]>>;
+  mockMessages?: any[];
+  onlineStatus?: boolean;
 }
 
 export default function AdminDashboard({
@@ -33,11 +33,11 @@ export default function AdminDashboard({
   mockMessages,
   onlineStatus
 }: AdminDashboardProps) {
-  
+
   // Real-time Firestore States
   const [dbUsers, setDbUsers] = useState<any[]>([]);
   const [dbMessages, setDbMessages] = useState<any[]>([]);
-  
+
   // User Modal details state
   const [selectedUserForModal, setSelectedUserForModal] = useState<any | null>(null);
 
@@ -99,11 +99,11 @@ export default function AdminDashboard({
       snapshot.forEach((doc) => {
         const chatDocRef = doc.ref.parent.parent;
         const chatId = chatDocRef ? chatDocRef.id : 'unknown';
-        messagesList.push({ 
-          id: doc.id, 
-          chatId, 
-          refPath: doc.ref.path, 
-          ...doc.data() 
+        messagesList.push({
+          id: doc.id,
+          chatId,
+          refPath: doc.ref.path,
+          ...doc.data()
         });
       });
       setDbMessages(messagesList);
@@ -144,38 +144,38 @@ export default function AdminDashboard({
   }, [adminActiveChatId]);
 
   // Compute merged datasets: combine Firebase real-time collection + preloaded mock profiles for rich visuals
-  const finalUsers = dbUsers.length > 0 
-    ? dbUsers 
+  const finalUsers = dbUsers.length > 0
+    ? dbUsers
     : mockProfiles.map(p => ({
-        id: p.id.toString(),
-        uid: p.id.toString(),
-        fullName: p.name,
-        email: `${p.name.toLowerCase().replace(' ', '')}@example.com`,
-        profileImage: p.avatar_url,
-        createdAt: new Date(Date.now() - 86400000 * p.id).toISOString(),
-        lastLogin: new Date().toISOString(),
-        role: 'user',
-        gender: p.gender,
-        age: p.age,
-        relationship_goal: p.relationship_goal,
-        location_name: p.location_name,
-        is_premium: p.is_premium,
-        verification_badge: p.verification_badge,
-        status: p.status
-      }));
+      id: p.id.toString(),
+      uid: p.id.toString(),
+      fullName: p.name,
+      email: `${p.name.toLowerCase().replace(' ', '')}@example.com`,
+      profileImage: p.avatar_url,
+      createdAt: new Date(Date.now() - 86400000 * p.id).toISOString(),
+      lastLogin: new Date().toISOString(),
+      role: 'user',
+      gender: p.gender,
+      age: p.age,
+      relationship_goal: p.relationship_goal,
+      location_name: p.location_name,
+      is_premium: p.is_premium,
+      verification_badge: p.verification_badge,
+      status: p.status
+    }));
 
   const finalMessages = dbMessages.length > 0
     ? dbMessages
     : mockMessages.map((m, idx) => ({
-        id: m.id.toString(),
-        messageId: m.id.toString(),
-        senderId: m.sender_id.toString(),
-        senderName: m.sender_id === 11 ? 'Emily Davis' : 'Alex Johnson',
-        messageText: m.content,
-        createdAt: new Date(Date.now() - 3600000 * idx).toISOString(),
-        readStatus: m.is_read ? 'read' : 'unread',
-        chatId: 'mock_chat_thread'
-      }));
+      id: m.id.toString(),
+      messageId: m.id.toString(),
+      senderId: m.sender_id.toString(),
+      senderName: m.sender_id === 11 ? 'Emily Davis' : 'Alex Johnson',
+      messageText: m.content,
+      createdAt: new Date(Date.now() - 3600000 * idx).toISOString(),
+      readStatus: m.is_read ? 'read' : 'unread',
+      chatId: 'mock_chat_thread'
+    }));
 
   // Resolve Member display names dynamically from UIDs
   const getMemberName = (uid: string) => {
@@ -251,7 +251,7 @@ export default function AdminDashboard({
   // Delete User Action
   const handleDeleteUser = async (userId: string) => {
     if (!window.confirm("Are you absolutely sure you want to delete this user profile? This action is permanent and cannot be undone.")) return;
-    
+
     const fsUser = dbUsers.find(u => u.id === userId);
     if (fsUser) {
       try {
@@ -307,10 +307,10 @@ export default function AdminDashboard({
 
   // Start chat thread from user list
   const handleStartChatWithUser = (targetUserId: string, targetUserName: string) => {
-    const chatId = user.id < targetUserId 
-      ? `${user.id}_${targetUserId}` 
+    const chatId = user.id < targetUserId
+      ? `${user.id}_${targetUserId}`
       : `${targetUserId}_${user.id}`;
-    
+
     setAdminActiveChatId(chatId);
     setAdminActivePartnerId(targetUserId);
     setAdminActivePartnerName(targetUserName);
@@ -405,7 +405,7 @@ export default function AdminDashboard({
   };
 
   // Filtered Lists based on search term
-  const filteredUsers = finalUsers.filter(u => 
+  const filteredUsers = finalUsers.filter(u =>
     (u.fullName || u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     (u.email || '').toLowerCase().includes(userSearchTerm.toLowerCase())
   );
@@ -414,9 +414,9 @@ export default function AdminDashboard({
     const sender = getMemberName(m.senderId || m.sender_id || '');
     const text = m.messageText || m.content || '';
     const matchesSearch = sender.toLowerCase().includes(messageSearchTerm.toLowerCase()) ||
-                          text.toLowerCase().includes(messageSearchTerm.toLowerCase()) ||
-                          (m.chatId || '').toLowerCase().includes(messageSearchTerm.toLowerCase());
-    
+      text.toLowerCase().includes(messageSearchTerm.toLowerCase()) ||
+      (m.chatId || '').toLowerCase().includes(messageSearchTerm.toLowerCase());
+
     if (messageFilterStatus === 'all') return matchesSearch;
     return matchesSearch && m.readStatus === messageFilterStatus;
   });
@@ -428,7 +428,7 @@ export default function AdminDashboard({
         {/* TABS 1: METRICS OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
-            
+
             {/* Top stats metrics cards row */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {[
@@ -450,7 +450,7 @@ export default function AdminDashboard({
 
             {/* Graphs Charts row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              
+
               {/* Left chart card */}
               <div className="lg:col-span-2 glass-card border border-slate-800 rounded-3xl p-6 space-y-4">
                 <div className="flex items-center justify-between">
@@ -472,14 +472,14 @@ export default function AdminDashboard({
                     <AreaChart data={registrationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
                       <XAxis dataKey="name" stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} />
                       <YAxis stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} />
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{ backgroundColor: '#090D16', border: '1px solid #1E293B', borderRadius: '12px' }}
                         labelStyle={{ color: '#94A3B8', fontSize: '10px', fontWeight: 'bold' }}
                         itemStyle={{ color: '#F1F5F9', fontSize: '11px' }}
@@ -513,7 +513,7 @@ export default function AdminDashboard({
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{ backgroundColor: '#090D16', border: '1px solid #1E293B', borderRadius: '12px' }}
                         itemStyle={{ fontSize: '11px', color: '#F1F5F9' }}
                       />
@@ -541,14 +541,14 @@ export default function AdminDashboard({
         {/* TABS 2: REAL-TIME USER DIRECTORY */}
         {activeTab === 'users' && (
           <div className="glass-card border border-slate-800 rounded-3xl p-6 space-y-4">
-            
+
             {/* Search Header Controls */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="font-bold text-sm text-white">Real-Time User Directory</h3>
                 <p className="text-[10px] text-slate-400">Manage registered dating members, verify account details, or execute permanent purges.</p>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -615,7 +615,7 @@ export default function AdminDashboard({
                       </td>
                       <td className="py-3.5 px-4 text-slate-400 flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-slate-650" />
-                        {item.createdAt 
+                        {item.createdAt
                           ? new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
                           : 'Pre-seed'}
                       </td>
@@ -643,11 +643,10 @@ export default function AdminDashboard({
                         {/* Grant Verify badge */}
                         <button
                           onClick={() => handleToggleVerify(item.id)}
-                          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-                            item.verification_badge
+                          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${item.verification_badge
                               ? 'bg-indigo-950/20 border-indigo-900/50 text-indigo-400'
                               : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-indigo-400'
-                          }`}
+                            }`}
                           title="Grant verification badge"
                         >
                           <Star className="w-3.5 h-3.5" />
@@ -655,11 +654,10 @@ export default function AdminDashboard({
                         {/* Ban suspension switch */}
                         <button
                           onClick={() => handleToggleBan(item.id)}
-                          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-                            item.status === 'banned'
+                          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${item.status === 'banned'
                               ? 'bg-red-950/20 border-red-900/50 text-red-400'
                               : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-red-400'
-                          }`}
+                            }`}
                           title={item.status === 'banned' ? 'Activate Account' : 'Suspend Account'}
                         >
                           <Ban className="w-3.5 h-3.5" />
@@ -694,12 +692,12 @@ export default function AdminDashboard({
             </div>
           </div>
         )}
-               {/* TABS 3: GLOBAL MESSAGE LOG */}
+        {/* TABS 3: GLOBAL MESSAGE LOG */}
         {activeTab === 'messages' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Hand: All Chats & Audit Feed */}
             <div className="lg:col-span-7 space-y-6">
-              
+
               {/* Top Chats Room Quick Selector */}
               <div className="glass-card border border-slate-800 rounded-3xl p-6 space-y-4">
                 <div>
@@ -709,7 +707,7 @@ export default function AdminDashboard({
                   </h3>
                   <p className="text-[10px] text-slate-400">Join and reply directly inside any active user conversation channel.</p>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-1">
                   {dbChats.map((c) => {
                     const partnerId = c.participants?.find((p: string) => p !== user.id) || 'unknown';
@@ -723,11 +721,10 @@ export default function AdminDashboard({
                           setAdminActivePartnerId(partnerId);
                           setAdminActivePartnerName(partnerName);
                         }}
-                        className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                          isActive
+                        className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${isActive
                             ? 'bg-indigo-950/20 border-indigo-500 shadow-md shadow-indigo-500/10'
                             : 'bg-slate-900/60 border-slate-850 hover:border-slate-700'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between w-full">
                           <span className="font-bold text-xs text-white">{partnerName}</span>
@@ -756,7 +753,7 @@ export default function AdminDashboard({
                       <span>Compliance Audit Stream</span>
                     </h3>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <div className="relative">
                       <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -775,15 +772,14 @@ export default function AdminDashboard({
                   {filteredMessages.map((msg) => {
                     const isRoomActive = adminActiveChatId === msg.chatId;
                     return (
-                      <div 
-                        key={msg.id} 
-                        className={`p-3.5 rounded-2xl border transition-all flex justify-between items-start gap-4 ${
-                          isRoomActive
+                      <div
+                        key={msg.id}
+                        className={`p-3.5 rounded-2xl border transition-all flex justify-between items-start gap-4 ${isRoomActive
                             ? 'bg-indigo-950/15 border-indigo-500/50 shadow-md shadow-indigo-650/10'
                             : msg.readStatus === 'unread'
                               ? 'bg-indigo-950/5 border-indigo-900/40'
                               : 'bg-slate-900/30 border-slate-850'
-                        }`}
+                          }`}
                       >
                         <div className="space-y-1 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
@@ -791,7 +787,7 @@ export default function AdminDashboard({
                             <span className="text-slate-650">➜</span>
                             <span className="font-bold text-xs text-white">{getMemberName(msg.receiverId || msg.receiver_id)}</span>
                           </div>
-                          
+
                           <p className="text-[11px] text-slate-300 bg-slate-950/40 p-2 rounded-lg border border-slate-900 max-w-md">
                             {msg.messageText || msg.text || msg.content}
                           </p>
@@ -836,7 +832,7 @@ export default function AdminDashboard({
             {/* Right Hand: Admin Live Chat Control Console */}
             <div className="lg:col-span-5">
               <div className="glass-card border border-slate-800 rounded-3xl p-6 h-full flex flex-col justify-between min-h-[500px]">
-                
+
                 {adminActiveChatId ? (
                   <div className="flex flex-col h-full justify-between flex-1">
                     {/* Console Header */}
@@ -872,11 +868,10 @@ export default function AdminDashboard({
                             className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}
                           >
                             <div
-                              className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs ${
-                                isAdmin
+                              className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs ${isAdmin
                                   ? 'bg-gradient-brand text-white border-0 rounded-tr-none'
                                   : 'bg-slate-900 text-slate-100 border border-slate-850 rounded-tl-none'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-1.5 justify-between mb-1 opacity-70 text-[8px] font-semibold uppercase">
                                 <span>{isAdmin ? 'You (Admin)' : adminActivePartnerName}</span>
@@ -1075,11 +1070,10 @@ export default function AdminDashboard({
 
               <div className="bg-slate-900/50 p-4.5 rounded-2xl border border-slate-850/60">
                 <span className="block text-[8px] uppercase text-slate-500 font-bold tracking-widest mb-1">System Status</span>
-                <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
-                  selectedUserForModal.status === 'banned'
+                <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${selectedUserForModal.status === 'banned'
                     ? 'bg-red-950 border border-red-900 text-red-400'
                     : 'bg-green-950 border border-green-900 text-green-400'
-                }`}>
+                  }`}>
                   {selectedUserForModal.status === 'banned' ? 'Suspended' : 'Active'}
                 </span>
               </div>
